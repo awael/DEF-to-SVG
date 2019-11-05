@@ -3,15 +3,15 @@ import svgwrite as draw
 from def_parser import *
 from lef_parser import *
 # read_path = "./libraries/DEF/c880_tri.def"
-def_path = "./libraries/DEF/ispd18_test1.input.def"
+def_path = "./libraries/DEF/spi_ctl.def"
 def_parser = DefParser(def_path)
 def_parser.parse()
 a = np.array(list(def_parser.diearea))
 #print(a)
 
 b = np.array(list(def_parser.components))
-print(def_parser.components.comps[612].placed)
-lef_path = "./libraries/FreePDK45/ispd18_test1.input.lef"
+#print(def_parser.components.comps[612].placed)
+lef_path = "C:\\Users\\ahmed\\OneDrive\\Documents\\FALL 19\\Digital 2\\MiniProject\\lef-parser-master\\DEF-to-SVG\\libraries\\LEF\\osu035_stdcells.lef"
 lef_parser = LefParser(lef_path)
 lef_parser.parse()
 
@@ -20,9 +20,13 @@ lef_parser.parse()
 e = np.array(list(def_parser.nets))
 #print(e[0])
 
-def_parser.components.comps[0].name
-def_parser.components.comps[0].placed
-#lef_parser.macro_dict[def_parser.components.comps[0].name].info['SIZE']
+
+print(def_parser.components.num_comps)
+for component in def_parser.components.comps:
+    print(component.name)
+    print(component.placed)
+    print(lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'])
+    print("----------------------------------")
 
 #d = draw.Drawing(height = def_parser.diearea[1][0]-def_parser.diearea[0][0], width = def_parser.diearea[1][1]-def_parser.diearea[0][1])
 d = draw.Drawing('./try this.svg', size = (def_parser.diearea[1][1]-def_parser.diearea[0][1],def_parser.diearea[1][0]-def_parser.diearea[0][0]))
