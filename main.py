@@ -11,7 +11,7 @@ a = np.array(list(def_parser.diearea))
 
 b = np.array(list(def_parser.components))
 #print(def_parser.components.comps[612].placed)
-lef_path = "C:\\Users\\ahmed\\OneDrive\\Documents\\FALL 19\\Digital 2\\MiniProject\\lef-parser-master\\DEF-to-SVG\\libraries\\LEF\\osu035_stdcells.lef"
+lef_path = ".\\libraries\\LEF\\osu035_stdcells.lef"
 lef_parser = LefParser(lef_path)
 lef_parser.parse()
 
