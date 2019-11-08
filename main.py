@@ -72,7 +72,7 @@ while j < def_parser.nets.num_nets:
 # print(def_parser.nets.nets[0].routed[0].layer)
 
 #print(def_parser.nets.nets[1].routed[1].end_via) 
-#print(def_parser.nets.nets[1].routed[1].end_via_loc) // to get vias coordinates
+#print(def_parser.nets.nets[1].routed[1].end_via_loc) # to get vias coordinates
 
 #print(def_parser.nets.nets[0])
 
