@@ -5,7 +5,10 @@ from lef_parser import *
 import numpy as np
 import random
 import math
-import svgutils
+from svgutils import transform
+from svgutils import compose
+
+from PIL import Image,ImageOps
 def_path = "./libraries/DEF/spi_ctl.def"
 def_parser = DefParser(def_path)
 def_parser.parse()
@@ -100,8 +103,17 @@ for p in def_parser.pins.pins:
 #print(def_parser.nets.nets[0])
 # print(def_parser.pins.pins)
 # print(colors)
+
+
+
 d.saveas("./new2.svg")
 
+svg = transform.fromfile("./new2.svg")
+originalSVG = compose.SVG("./new2.svg")
+originalSVG.scale_xy(1,-1)
+originalSVG.moveto(0,def_parser.diearea[1][1]-def_parser.diearea[0][1])
+figure = compose.Figure(svg.height,svg.width,originalSVG)
+figure.save("./final.svg")
 
 
 print('DONE')
