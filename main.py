@@ -5,6 +5,7 @@ from lef_parser import *
 import numpy as np
 import random
 import math
+import svgutils
 def_path = "./libraries/DEF/spi_ctl.def"
 def_parser = DefParser(def_path)
 def_parser.parse()
@@ -29,7 +30,7 @@ for component in def_parser.components.comps:
     # print(component.placed)
     # print(lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'])
     # print("----------------------------------")
-    d.add(draw.shapes.Rect((component.placed[0], component.placed[1]), (lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][0]*SCALE, lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][1]*SCALE), fill='#ffa500', fill_opacity=0.1))
+    d.add(draw.shapes.Rect((component.placed[0], component.placed[1]), (lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][0]*SCALE, lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][1]*SCALE), fill='#ffa500', fill_opacity=0.1,stroke_width = 2))
 # print(def_parser.nets.nets[0].routed[0].points)
 # print(def_parser.nets.nets[0].routed[0].end_via_loc)
 # print(def_parser.nets.nets[0].routed[0].end_via)
@@ -45,19 +46,32 @@ while j < len(lef_parser.layer_dict):
     colors.update({x[j]:("#"+''.join([random.choice('0123456789ABCDEF') for l in range(6)]))})
     j=j+1
 print(colors)
+
 j = 0
 while j < def_parser.nets.num_nets:
     i = 0
     while i < len(def_parser.nets.nets[j].routed):
         # d.add(draw.shapes.Rect(def_parser.nets.nets[j].routed[i].points[0], def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1], stroke=colors[def_parser.nets.nets[j].routed[i].layer]))
         if def_parser.nets.nets[j].routed[i].points[0][0] == def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points) - 1][0]:
+
             # x coordinates match --> vertical layer
-            d.add(draw.shapes.Rect(def_parser.nets.nets[j].routed[i].points[0], (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE, (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][1]-def_parser.nets.nets[j].routed[i].points[0][1])),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer]))
+            XC = def_parser.nets.nets[j].routed[i].points[0][0] - (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE) /2
+            # YC = def_parser.nets.nets[j].routed[i].points[0][1] - (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][1]-def_parser.nets.nets[j].routed[i].points[0][1]) /2
+            d.add(draw.shapes.Rect((XC,def_parser.nets.nets[j].routed[i].points[0][1]), (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE, (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][1]-def_parser.nets.nets[j].routed[i].points[0][1])),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer]))
         else:
             #horizontal layer
-            d.add(draw.shapes.Rect(def_parser.nets.nets[j].routed[i].points[0], ((def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][0]-def_parser.nets.nets[j].routed[i].points[0][0]),lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer] ))
-
-
+            # XC = def_parser.nets.nets[j].routed[i].points[0][0] - (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][0]-def_parser.nets.nets[j].routed[i].points[0][0])/2
+            YC = def_parser.nets.nets[j].routed[i].points[0][1] - (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE) /2
+            d.add(draw.shapes.Rect((def_parser.nets.nets[j].routed[i].points[0][0], YC), ((def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][0]-def_parser.nets.nets[j].routed[i].points[0][0]),lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer] ))
+        k = 0
+        if (def_parser.nets.nets[j].routed[i].end_via != None and def_parser.nets.nets[j].routed[i].end_via != ';'):
+            while k < 3:
+                via_w = (lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[1][0] - lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[0][0])*SCALE
+                via_h = (lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[1][1] - lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[0][1])*SCALE
+                XC = def_parser.nets.nets[j].routed[i].end_via_loc[0] - via_w/2
+                YC = def_parser.nets.nets[j].routed[i].end_via_loc[1] - via_h/2
+                d.add(draw.shapes.Rect((XC,YC), (via_w, via_h),fill_opacity = 0.5, fill = colors[lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[1].name]))
+                k=k+1
         # print(def_parser.nets.nets[j].routed[i].points[0])
         # print(def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1])
         # print(def_parser.nets.nets[j].routed[i].layer)
@@ -83,10 +97,12 @@ for p in def_parser.pins.pins:
         d.add(draw.shapes.Rect((p.placed[0], p.placed[1]), (p.layer.points[1][0]-p.layer.points[0][0],p.layer.points[1][1]-p.layer.points[0][1]+def_parser.diearea[1][1]-def_parser.diearea[0][1]), fill_opacity = 0.5,fill = colors[p.layer.name]))
 
 
-
 #print(def_parser.nets.nets[0])
 # print(def_parser.pins.pins)
 # print(colors)
 d.saveas("./new2.svg")
 
+
+
+print('DONE')
 
