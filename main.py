@@ -7,40 +7,24 @@ import random
 import math
 from svgutils import transform
 from svgutils import compose
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-from PIL import Image,ImageOps
 def_path = "./libraries/DEF/spi_ctl.def"
 def_parser = DefParser(def_path)
 def_parser.parse()
-a = np.array(list(def_parser.diearea))
-#print(a)
 
-b = np.array(list(def_parser.components))
-#print(def_parser.components.comps[612].placed)
 lef_path = ".\\libraries\\LEF\\osu035_stdcells.lef"
 lef_parser = LefParser(lef_path)
 lef_parser.parse()
 
 SCALE = int(def_parser.scale)
 
-#d = draw.Drawing(height = def_parser.diearea[1][0]-def_parser.diearea[0][0], width = def_parser.diearea[1][1]-def_parser.diearea[0][1])
-d = draw.Drawing('./new2.svg', size = (def_parser.diearea[1][1]-def_parser.diearea[0][1],def_parser.diearea[1][0]-def_parser.diearea[0][0]))
-# d.add(draw.shapes.Rect((0,0), (def_parser.diearea[1][0]-def_parser.diearea[0][0],def_parser.diearea[1][1]-def_parser.diearea[0][1]), fill='#ffffff', fill_opacity=0, ))
+d = draw.Drawing('./output.svg', size = (def_parser.diearea[1][0]-def_parser.diearea[0][0],def_parser.diearea[1][1]-def_parser.diearea[0][1]))
 
-#print(def_parser.components.num_comps)
 for component in def_parser.components.comps:
-    # print(component.name)
-    # print(component.placed)
-    # print(lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'])
-    # print("----------------------------------")
-    d.add(draw.shapes.Rect((component.placed[0], component.placed[1]), (lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][0]*SCALE, lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][1]*SCALE), fill='#ffa500', fill_opacity=0.1,stroke_width = 2))
-# print(def_parser.nets.nets[0].routed[0].points)
-# print(def_parser.nets.nets[0].routed[0].end_via_loc)
-# print(def_parser.nets.nets[0].routed[0].end_via)
-# print(def_parser.nets.nets[0].routed[0].layer)
-# print(def_parser.nets.nets[0].routed[0].type)
-# print(def_parser.nets.nets[0].routed[0])
-# print(len(def_parser.nets.nets[0].routed))
+
+    d.add(draw.shapes.Rect((component.placed[0], component.placed[1]), (lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][0]*SCALE, lef_parser.macro_dict[component.name.split("_")[0]].info['SIZE'][1]*SCALE), fill='#ffa500', fill_opacity=0.1,stroke_width = 2,stroke = 'black'))
+
 
 j = 0
 colors = dict()
@@ -54,20 +38,17 @@ j = 0
 while j < def_parser.nets.num_nets:
     i = 0
     while i < len(def_parser.nets.nets[j].routed):
-        # d.add(draw.shapes.Rect(def_parser.nets.nets[j].routed[i].points[0], def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1], stroke=colors[def_parser.nets.nets[j].routed[i].layer]))
         if def_parser.nets.nets[j].routed[i].points[0][0] == def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points) - 1][0]:
 
             # x coordinates match --> vertical layer
             XC = def_parser.nets.nets[j].routed[i].points[0][0] - (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE) /2
-            # YC = def_parser.nets.nets[j].routed[i].points[0][1] - (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][1]-def_parser.nets.nets[j].routed[i].points[0][1]) /2
             d.add(draw.shapes.Rect((XC,def_parser.nets.nets[j].routed[i].points[0][1]), (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE, (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][1]-def_parser.nets.nets[j].routed[i].points[0][1])),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer]))
         else:
             #horizontal layer
-            # XC = def_parser.nets.nets[j].routed[i].points[0][0] - (def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][0]-def_parser.nets.nets[j].routed[i].points[0][0])/2
             YC = def_parser.nets.nets[j].routed[i].points[0][1] - (lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE) /2
             d.add(draw.shapes.Rect((def_parser.nets.nets[j].routed[i].points[0][0], YC), ((def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1][0]-def_parser.nets.nets[j].routed[i].points[0][0]),lef_parser.layer_dict[def_parser.nets.nets[j].routed[i].layer].width*SCALE),fill_opacity = 0.5,fill = colors[def_parser.nets.nets[j].routed[i].layer] ))
         k = 0
-        if (def_parser.nets.nets[j].routed[i].end_via != None and def_parser.nets.nets[j].routed[i].end_via != ';'):
+        if def_parser.nets.nets[j].routed[i].end_via != None and def_parser.nets.nets[j].routed[i].end_via != ';':
             while k < 3:
                 via_w = (lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[1][0] - lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[0][0])*SCALE
                 via_h = (lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[1][1] - lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[k].shapes[0].points[0][1])*SCALE
@@ -75,24 +56,10 @@ while j < def_parser.nets.num_nets:
                 YC = def_parser.nets.nets[j].routed[i].end_via_loc[1] - via_h/2
                 d.add(draw.shapes.Rect((XC,YC), (via_w, via_h),fill_opacity = 0.5, fill = colors[lef_parser.via_dict[def_parser.nets.nets[j].routed[i].end_via].layers[1].name]))
                 k=k+1
-        # print(def_parser.nets.nets[j].routed[i].points[0])
-        # print(def_parser.nets.nets[j].routed[i].points[len(def_parser.nets.nets[j].routed[i].points)-1])
-        # print(def_parser.nets.nets[j].routed[i].layer)
-        # print(def_parser.nets.nets[j].routed[i].end_via)
         i=i+1
     j=j+1
 
-# def_parser.nets.nets[j-1].routed[i-1].end_via
-# print(lef_parser.layer_dict['metal1'].width)
-# print(def_parser.nets.nets[0].routed[0].layer)
 
-#print(def_parser.nets.nets[1].routed[1].end_via) 
-#print(def_parser.nets.nets[1].routed[1].end_via_loc) # to get vias coordinates
-# print(def_parser.pins.pins[0].placed)
-# print(def_parser.pins.pins[0].direction)
-# print(def_parser.pins.pins[0].net)
-# print(def_parser.pins.pins[0].layer)
-# print(def_parser.pins.pins[0].use)
 for p in def_parser.pins.pins:
     if math.copysign(1, p.layer.points[1][0]) == math.copysign(1, p.layer.points[0][0]) and math.copysign(1, p.layer.points[1][1]) == math.copysign(1, p.layer.points[0][1]):
         d.add(draw.shapes.Rect((p.placed[0], p.placed[1]), (p.layer.points[1][0]-p.layer.points[0][0],p.layer.points[1][1]-p.layer.points[0][1]), fill_opacity = 0.5,fill = colors[p.layer.name]))
@@ -100,21 +67,129 @@ for p in def_parser.pins.pins:
         d.add(draw.shapes.Rect((p.placed[0], p.placed[1]), (p.layer.points[1][0]-p.layer.points[0][0],p.layer.points[1][1]-p.layer.points[0][1]+def_parser.diearea[1][1]-def_parser.diearea[0][1]), fill_opacity = 0.5,fill = colors[p.layer.name]))
 
 
-#print(def_parser.nets.nets[0])
-# print(def_parser.pins.pins)
-# print(colors)
 
 
 
-d.saveas("./new2.svg")
 
-svg = transform.fromfile("./new2.svg")
-originalSVG = compose.SVG("./new2.svg")
-originalSVG.scale_xy(1,-1)
-originalSVG.moveto(0,def_parser.diearea[1][1]-def_parser.diearea[0][1])
-figure = compose.Figure(svg.height,svg.width,originalSVG)
-figure.save("./final.svg")
+d.saveas("./output.svg")
 
+class PhotoViewer(QtWidgets.QGraphicsView):
+    photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
+
+    def __init__(self, parent):
+        super(PhotoViewer, self).__init__(parent)
+        self._zoom = 0
+        self._empty = True
+        self._scene = QtWidgets.QGraphicsScene(self)
+        self._photo = QtWidgets.QGraphicsPixmapItem()
+        self._scene.addItem(self._photo)
+        self.setScene(self._scene)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+
+    def hasPhoto(self):
+        return not self._empty
+
+    def fitInView(self, scale=True):
+        rect = QtCore.QRectF(self._photo.pixmap().rect())
+        if not rect.isNull():
+            self.setSceneRect(rect)
+            if self.hasPhoto():
+                unity = self.transform().mapRect(QtCore.QRectF(0, 0, 1, 1))
+                self.scale(1 / unity.width(), 1 / unity.height())
+                viewrect = self.viewport().rect()
+                scenerect = self.transform().mapRect(rect)
+                factor = min(viewrect.width() / scenerect.width(),
+                             viewrect.height() / scenerect.height())
+                self.scale(factor, factor)
+            self._zoom = 0
+
+    def setPhoto(self, pixmap=None):
+        self._zoom = 0
+        if pixmap and not pixmap.isNull():
+            self._empty = False
+            self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+            self._photo.setPixmap(pixmap)
+        else:
+            self._empty = True
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+            self._photo.setPixmap(QtGui.QPixmap())
+        self.fitInView()
+
+    def wheelEvent(self, event):
+        if self.hasPhoto():
+            if event.angleDelta().y() > 0:
+                factor = 1.25
+                self._zoom += 1
+            else:
+                factor = 0.8
+                self._zoom -= 1
+            if self._zoom > 0:
+                self.scale(factor, factor)
+            elif self._zoom == 0:
+                self.fitInView()
+            else:
+                self._zoom = 0
+
+    def toggleDragMode(self):
+        if self.dragMode() == QtWidgets.QGraphicsView.ScrollHandDrag:
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+        elif not self._photo.pixmap().isNull():
+            self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+
+    def mousePressEvent(self, event):
+        if self._photo.isUnderMouse():
+            self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
+        super(PhotoViewer, self).mousePressEvent(event)
+
+
+class Window(QtWidgets.QWidget):
+    def __init__(self):
+        super(Window, self).__init__()
+        self.viewer = PhotoViewer(self)
+        # 'Load image' button
+        self.btnLoad = QtWidgets.QToolButton(self)
+        self.btnLoad.setText('Load image')
+        self.btnLoad.clicked.connect(self.loadImage)
+        # Button to change from drag/pan to getting pixel info
+        self.btnPixInfo = QtWidgets.QToolButton(self)
+        self.btnPixInfo.setText('Enter pixel info mode')
+        self.btnPixInfo.clicked.connect(self.pixInfo)
+        self.editPixInfo = QtWidgets.QLineEdit(self)
+        self.editPixInfo.setReadOnly(True)
+        self.viewer.photoClicked.connect(self.photoClicked)
+        # Arrange layout
+        VBlayout = QtWidgets.QVBoxLayout(self)
+        VBlayout.addWidget(self.viewer)
+        HBlayout = QtWidgets.QHBoxLayout()
+        HBlayout.setAlignment(QtCore.Qt.AlignLeft)
+        HBlayout.addWidget(self.btnLoad)
+        HBlayout.addWidget(self.btnPixInfo)
+        HBlayout.addWidget(self.editPixInfo)
+        VBlayout.addLayout(HBlayout)
+
+    def loadImage(self):
+        self.viewer.setPhoto(QtGui.QPixmap('./output.svg'))
+        self.viewer.scale(1,-1)
+    def pixInfo(self):
+        self.viewer.toggleDragMode()
+
+    def photoClicked(self, pos):
+        if self.viewer.dragMode()  == QtWidgets.QGraphicsView.NoDrag:
+            self.editPixInfo.setText('%d, %d' % (pos.x(), pos.y()))
+
+
+if __name__ == '__main__':
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    window = Window()
+    window.setGeometry(1500, 1300, 1800, 1600)
+    window.show()
+    sys.exit(app.exec_())
 
 print('DONE')
 
