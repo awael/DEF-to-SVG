@@ -17,4 +17,13 @@ import PyQt5
 
 You need to input the DEF and LEF file paths
 
+For building and running the program: 
+
+Run main.py and input DEF and LEF paths 
+
+Choose whether to highlight to DFF and clk nets or not ( 1:Yes / 0:No) 
+
+QT photo viewer window will popup (Click on "load image") 
+
+
 
