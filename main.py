@@ -13,7 +13,6 @@ from cairosvg import svg2png
 
 #"./libraries/DEF/spi_ctl.def"
 def_path = input("Enter def file path: ")
-# def_path = "./libraries/DEF/spi_ctl.def"
 
 def_parser = DefParser(def_path)
 def_parser.parse() #call def parser
