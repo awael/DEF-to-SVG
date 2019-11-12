@@ -19,7 +19,9 @@ You need to input the DEF and LEF file paths
 
 For building and running the program: 
 
-Run main.py and input DEF and LEF paths 
+clone/download the files from "final branch" 
+
+Run "main.py" and input DEF and LEF paths 
 
 Choose whether to highlight to DFF and clk nets or not ( 1:Yes / 0:No) 
 
