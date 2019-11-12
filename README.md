@@ -2,8 +2,11 @@
 Dependencies:
 
 (Libraries)
+
 *import numpy 
+
 *import random
+
 *import math
 *import svgutils
 *import PyQt5 
