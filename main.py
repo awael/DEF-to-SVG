@@ -1,4 +1,3 @@
-#import drawSvg as draw
 import svgwrite as draw
 from def_parser import *
 from lef_parser import *
@@ -11,24 +10,26 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtSvg import QSvgWidget, QSvgRenderer
 from PyQt5.QtGui import *
 from cairosvg import svg2png
+
 #"./libraries/DEF/spi_ctl.def"
-# def_path = input("Enter def file path: ")
-def_path = "./libraries/DEF/spi_ctl.def"
+def_path = input("Enter def file path: ")
+# def_path = "./libraries/DEF/spi_ctl.def"
 
 def_parser = DefParser(def_path)
-def_parser.parse()
+def_parser.parse() #call def parser
 
 # ".\\libraries\\LEF\\osu035_stdcells.lef"
-# lef_path = input("Enter lef file path: ")
-lef_path = ".\\libraries\\LEF\\osu035_stdcells.lef"
+lef_path = input("Enter lef file path: ")
+# lef_path = ".\\libraries\\LEF\\osu035_stdcells.lef"
 
 lef_parser = LefParser(lef_path)
-lef_parser.parse()
+lef_parser.parse() #call lef parser
 
-boolean = input("Do you want to highlight clock tree (DFF and CLK nets)? [1:yes,0:no]")
+boolean = input("Do you want to highlight clock tree (DFF and CLK nets)? [1:yes,0:no]") #Prompt user for highlight option
 boolean = int(boolean)
 SCALE = int(def_parser.scale)
 
+#construct color table
 j=0
 colors = dict()
 x = list(lef_parser.layer_dict.keys())
@@ -43,9 +44,7 @@ def_parser.diearea[1][0]-def_parser.diearea[0][0],
 def_parser.diearea[1][1]-def_parser.diearea[0][1]), fill='#ffffff', fill_opacity=0.1,
                        stroke_width=8, stroke='black'))
 
-print(lef_parser.macro_dict['AND2X1'].pin_dict['vdd'].info['PORT'].info['LAYER'][0].shapes[0].points)
-print(lef_parser.macro_dict['AND2X1'].info['OBS'].info['LAYER'][0].shapes[1].points)
-
+#draw components and their inner OBS and layers, highlight if selected
 for component in def_parser.components.comps:
     if (boolean == 0):
         d.add(draw.shapes.Rect((component.placed[0], component.placed[1]), (
@@ -199,6 +198,8 @@ for component in def_parser.components.comps:
 j = 0
 
 
+
+#draw nets highlighting clock if selected
 j = 0
 while j < def_parser.nets.num_nets:
     i = 0
@@ -414,9 +415,13 @@ for p in def_parser.pins.pins:
 
 
 
-
+#save SVG in directory
 d.saveas("./output.svg")
 
+###############################################################################3
+#Qt gui
+
+#main class
 class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
 
@@ -484,14 +489,15 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
         elif not self._photo.pixmap().isNull():
             self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
-
+    #mousepress
     def mousePressEvent(self, event):
         if self._photo.isUnderMouse():
             self.photoClicked.emit(self.mapToScene(event.pos()).toPoint())
         super(PhotoViewer, self).mousePressEvent(event)
 
-
+#display window class
 class Window(QtWidgets.QWidget):
+    #initialization
     def __init__(self):
         super(Window, self).__init__()
         self.viewer = PhotoViewer(self)
@@ -515,13 +521,14 @@ class Window(QtWidgets.QWidget):
         HBlayout.addWidget(self.btnPixInfo)
         HBlayout.addWidget(self.editPixInfo)
         VBlayout.addLayout(HBlayout)
-
+    #load saved image
     def loadImage(self):
         self.viewer.setPhoto(QtGui.QPixmap('./output.svg'))
         self.viewer.scale(1,-1)
+    #toggles drag
     def pixInfo(self):
         self.viewer.toggleDragMode()
-
+    #checks for click while dragging
     def photoClicked(self, pos):
         if self.viewer.dragMode()  == QtWidgets.QGraphicsView.NoDrag:
             self.editPixInfo.setText('%d, %d' % (pos.x(), pos.y()))
