@@ -416,6 +416,7 @@ for p in def_parser.pins.pins:
 
 #save SVG in directory
 d.saveas("./output.svg")
+print('SVG GENERATED')
 
 ###############################################################################3
 #Qt gui
